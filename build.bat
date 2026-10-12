@@ -1,0 +1,85 @@
+@echo off
+setlocal
+
+cd /d "%~dp0"
+
+where blinter.exe > nul 2>&1
+if errorlevel 1 (
+  call .\src\err-fatal.bat check "blinter is not installed"
+  exit /b 1
+)
+set "status=0"
+call :check_one build.bat
+
+call .\src\build-script-arg.bat "%~1" "%~2" || exit /b 1
+
+if "%~1"=="" goto build
+if "%~1"=="deploy" goto deploy
+if "%~1"=="clean" goto clean
+if "%~1"=="check" goto check
+
+:build
+call .\src\err-fatal.bat build "this project has no build"
+exit /b 1
+
+:deploy
+if not defined PREFIX set "PREFIX=C:\Program Files\bat-utils"
+if not exist "%PREFIX%\bin" mkdir "%PREFIX%\bin"
+if not exist "%PREFIX%\bin" (
+  call .\src\err-fatal.bat deploy "cannot make %PREFIX%\bin"
+  exit /b 1
+)
+for %%f in (.\src\*.bat) do call :deploy_one "%%f" || exit /b 1
+call :path_add || exit /b 1
+exit /b 0
+
+:deploy_one
+set "name=%~nx1"
+call .\src\info.bat deploying "%PREFIX%\bin\%name%"
+copy /y "%~1" "%PREFIX%\bin\%name%" > nul
+if errorlevel 1 (
+  call .\src\err-fatal.bat deploy "cannot copy %~1"
+  exit /b 1
+)
+exit /b 0
+
+:path_add
+set "regkey=HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
+set "bindir=%PREFIX%\bin"
+set "regtype=REG_EXPAND_SZ"
+set "syspath="
+for /f "tokens=1,2,* delims= " %%a in ('reg query "%regkey%" /v Path') do (
+  if /i "%%a"=="Path" set "regtype=%%b"
+  if /i "%%a"=="Path" set "syspath=%%c"
+)
+if not defined syspath (
+  call .\src\err-fatal.bat deploy "cannot read the system path"
+  exit /b 1
+)
+set "found="
+for %%p in ("%syspath:;=" "%") do if /i "%%~p"=="%bindir%" set "found=1"
+if defined found exit /b 0
+call .\src\info.bat adding "%bindir% to the system path"
+reg add "%regkey%" /v Path /t %regtype% /d "%syspath%;%bindir%" /f > nul
+if errorlevel 1 (
+  call .\src\err-fatal.bat deploy "cannot add %bindir% to the system path"
+  exit /b 1
+)
+exit /b 0
+
+:clean
+call .\src\info.bat clean "bat-utils has nothing to clean"
+exit /b 0
+
+:check
+for %%f in (.\src\*.bat) do call :check_one "%%f"
+exit /b %status%
+
+:check_one
+call .\src\info.bat checking "%~1"
+call blinter.exe "%~1"
+if errorlevel 1 (
+  call .\src\err.bat "%~1" "blinter found a problem"
+  set "status=1"
+)
+exit /b 0
