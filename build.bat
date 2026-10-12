@@ -2,15 +2,6 @@
 setlocal
 
 cd /d "%~dp0"
-
-where blinter.exe > nul 2>&1
-if errorlevel 1 (
-  call .\src\err-fatal.bat check "blinter is not installed"
-  exit /b 1
-)
-set "status=0"
-call :check_one build.bat
-
 call .\src\build-script-arg.bat "%~1" "%~2" || exit /b 1
 
 if "%~1"=="" goto build
@@ -72,6 +63,13 @@ call .\src\info.bat clean "bat-utils has nothing to clean"
 exit /b 0
 
 :check
+where blinter.exe > nul 2>&1
+if errorlevel 1 (
+  call .\src\err-fatal.bat check "blinter is not installed"
+  exit /b 1
+)
+set "status=0"
+call :check_one build.bat
 for %%f in (.\src\*.bat) do call :check_one "%%f"
 exit /b %status%
 
