@@ -63,21 +63,11 @@ call .\src\info.bat clean "bat-utils has nothing to clean"
 exit /b 0
 
 :check
-where blinter.exe > nul 2>&1
-if errorlevel 1 (
-  call .\src\err-fatal.bat check "blinter is not installed"
-  exit /b 1
-)
-set "status=0"
-call :check_one build.bat
-for %%f in (.\src\*.bat) do call :check_one "%%f"
-exit /b %status%
+set "files=build.bat"
+for %%f in (.\src\*.bat) do call :check_add "%%f"
+call .\src\check.bat %files%
+exit /b %errorlevel%
 
-:check_one
-call .\src\info.bat checking "%~1"
-call blinter.exe "%~1"
-if errorlevel 1 (
-  call .\src\err.bat "%~1" "blinter found a problem"
-  set "status=1"
-)
+:check_add
+set "files=%files% %~1"
 exit /b 0
