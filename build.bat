@@ -59,8 +59,8 @@ if errorlevel 1 (
 exit /b 0
 
 :clean
-call .\src\info.bat clean "bat-utils has nothing to clean"
-exit /b 0
+call .\src\err-fatal.bat clean "bat-utils has nothing to clean"
+exit /b 1
 
 :check
 call .\src\check.bat .\.
