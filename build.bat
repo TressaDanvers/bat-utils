@@ -63,11 +63,5 @@ call .\src\info.bat clean "bat-utils has nothing to clean"
 exit /b 0
 
 :check
-set "files=build.bat"
-for %%f in (.\src\*.bat) do call :check_add "%%f"
-call .\src\check.bat %files%
+call .\src\check.bat .\.
 exit /b %errorlevel%
-
-:check_add
-set "files=%files% %~1"
-exit /b 0
