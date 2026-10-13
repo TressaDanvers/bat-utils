@@ -25,10 +25,10 @@ REM LINT:IGNORE W004
 goto next
 
 :check_one
-call "%~dp0"info.bat checking "%~1"
+call "%~dp0"info.bat check "%~1"
 call blinter.exe "%~1"
 if errorlevel 1 (
-  call "%~dp0"err.bat "%~1" "blinter found a problem"
+  call "%~dp0"err.bat check "%~1: blinter found a problem"
   set "status=1"
 )
 exit /b 0

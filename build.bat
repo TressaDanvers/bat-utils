@@ -25,12 +25,13 @@ if not exist "%PREFIX%\bin" (
 )
 for %%f in (.\src\*.bat) do call :deploy_one "%%f" || exit /b 1
 call :path_add || exit /b 1
+call .\src\pass.bat deploy "all files deployed"
 endlocal
 exit /b 0
 
 :deploy_one
 set "name=%~nx1"
-call .\src\info.bat deploying "%PREFIX%\bin\%name%"
+call .\src\info.bat deploy "%PREFIX%\bin\%name%"
 REM LINT:IGNORE P022
 copy /y "%~1" "%PREFIX%\bin\%name%" > nul
 if errorlevel 1 (
@@ -54,14 +55,18 @@ if not defined syspath (
 )
 set "found="
 for %%p in ("%syspath:;=" "%") do if /i "%%~p"=="%bindir%" set "found=1"
-if defined found exit /b 0
-call .\src\info.bat adding "%bindir% to the system path"
+if defined found (
+  call .\src\info.bat deploy "already on system path"
+  exit /b 0
+)
+call .\src\info.bat deploy "adding %bindir% to the system path"
 REM LINT:IGNORE P022
 reg add "%regkey%" /v Path /t %regtype% /d "%syspath%;%bindir%" /f > nul
 if errorlevel 1 (
   call .\src\err-fatal.bat deploy "cannot add %bindir% to the system path"
   exit /b 1
 )
+call .\src\pass.bat deploy "%bindir% added to the system path"
 exit /b 0
 
 :clean
@@ -71,4 +76,11 @@ exit /b 1
 
 :check
 call .\src\check-bat.bat .\.
-endlocal & exit /b %errorlevel%
+if errorlevel 1 (
+  call .\src\err-fatal.bat check "the scripts have problems"
+  endlocal
+  exit /b 1
+)
+call .\src\pass.bat check "all checks passed"
+endlocal
+exit /b 0
