@@ -10,13 +10,13 @@ if "%~1"=="clean" goto clean
 if "%~1"=="check" goto check
 
 :build
-call .\src\err-fatal.bat build "this project has no build"
+call .\src\err-fatal.bat build "this project has nothing to build"
 endlocal
 exit /b 1
 
 :deploy
 REM LINT:IGNORE SEC006
-if not defined PREFIX set "PREFIX=C:\Program Files\bat-utils"
+if not defined PREFIX for %%i in ("%CD%") do set "PREFIX=C:\Program Files\%%~nxi"
 if not exist "%PREFIX%\bin" mkdir "%PREFIX%\bin"
 if not exist "%PREFIX%\bin" (
   call .\src\err-fatal.bat deploy "cannot make %PREFIX%\bin"
@@ -65,7 +65,7 @@ if errorlevel 1 (
 exit /b 0
 
 :clean
-call .\src\err-fatal.bat clean "bat-utils has nothing to clean"
+call .\src\err-fatal.bat clean "this project has nothing to clean"
 endlocal
 exit /b 1
 
