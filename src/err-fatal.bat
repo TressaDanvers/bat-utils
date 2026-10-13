@@ -1,30 +1,29 @@
 @echo off
 setlocal enabledelayedexpansion
 
-for /f "tokens=1 delims= " %%e in ('echo prompt $E ^| cmd') do set "esc=%%e"
-set "tag=!esc![1;31mfatal error:!esc![39m"
+set "status=1"
+call "%~dp0"ansi.bat
 
 if "%~1"=="" (
-  echo !tag! usage:!esc![22m err-fatal first [rest...] 1>&2
-  exit /b 2
+  REM LINT:IGNORE E006
+  echo !red!fatal error:!default! usage:!normal! err-fatal[.bat] first [rest...] 1>&2
+  set "status=2"
+  goto end
 )
 
 set "first=%~1"
-shift /1
-set "rest="
+set "rest=%*"
+set "rest=!rest:"=!"
+set "rest=!rest:*%~1=!"
 
-:collect
-if "%~1"=="" goto collected
-set "rest=!rest! %~1"
-shift /1
-REM LINT:IGNORE W004
-goto collect
-
-:collected
 if defined rest (
-  echo !tag! !first!:!esc![22m!rest! 1>&2
+  REM LINT:IGNORE E006
+  echo !red!fatal error:!default! !first!:!normal!!rest! 1>&2
 ) else (
-  echo !tag!!esc![22m !first! 1>&2
+  REM LINT:IGNORE E006
+  echo !red!fatal error:!default!!normal! !first! 1>&2
 )
 
-exit /b 1
+:end
+endlocal
+exit /b %status%
